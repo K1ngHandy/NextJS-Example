@@ -1,21 +1,22 @@
 import { db } from "@vercel/postgres";
-
-const client = await db.connect();
-
-async function listInvoices() {
-	const data = await client.sql`
-    SELECT invoices.amount, customers.name
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE invoices.amount = 666;
-  `;
-
-	return data.rows;
-}
+import { invoices } from "../lib/placeholder-data";
 
 export async function GET() {
-  return Response.json({
-    message:
-      'Uncomment this file and remove this line. You can delete this file when you are finished.',
-  });
+  const client = await db.connect();
+
+  try {
+    const data = await client.sql`
+      SELECT invoices.amount, customers.name
+      FROM invoices
+      JOIN customers ON invoices.customer_id = customers.id
+      WHERE invoices.amount = 666;
+    `;
+  
+    return Response.json({ invoices: data.rows });
+  } catch (error) {
+    console.error('Database error:', error);
+    return Response.json({ error: 'Failed to fetch data' }, { status: 500 });
+  } finally {
+    client.release();
+  }
 }
